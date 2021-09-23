@@ -1,7 +1,8 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-const Schema = mongoose.Schema;
+const OutputSchema = new mongoose.Schema(
+  {},
+  { strict: false, timestamps: true }
+);
 
-const OutputSchema = new Schema({}, { strict: false, timestamps: true });
-
-module.exports = mongoose.model("Output", OutputSchema);
+export default mongoose.model("Output", OutputSchema);
