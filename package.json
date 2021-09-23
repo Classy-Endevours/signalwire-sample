@@ -18,6 +18,7 @@
     "migration:reset": "npm run migration:down:all && npm run migration:up && npm run seeder:up"
   },
   "dependencies": {
+    "@signalwire/node": "^2.4.0",
     "bcrypt": "^5.0.1",
     "compression": "^1.7.4",
     "cookie-parser": "~1.4.3",
