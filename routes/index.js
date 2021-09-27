@@ -6,6 +6,7 @@ import {
   Recording,
   Message,
   CommonResponse,
+  CallUsers,
 } from "../controllers/Signalwire.js";
 const router = Router();
 
@@ -16,6 +17,8 @@ router.get("/mmv-response", MMVResponse);
 router.get("/recording", Recording);
 router.get("/message", Message);
 router.get("/response/:question", CommonResponse);
+
+router.get("/call", CallUsers);
 
 router.get("/", function (req, res, next) {
   // const err = new Error('This is root route!')

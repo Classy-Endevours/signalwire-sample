@@ -1,12 +1,19 @@
-import { RestClient } from "@signalwire/node";
+import { RestClient, RelayClient, RelayConsumer } from "@signalwire/node";
+
 import Output from "../config/database/mongoose/models/Output.js";
-const BASE_URL = `https://c20b-103-88-82-236.ngrok.io`;
+import { Outbound } from "../helper/SignalWire.js";
+const BASE_URL = `https://6128-103-88-82-106.ngrok.io`;
 
 const {
   SIGNALWIRE_PROJECT_ID,
   SIGNALWIRE_PROJECT_TOKEN,
   SIGNALWIRE_SPACE_URL,
 } = process.env;
+
+const relayClient = new RelayClient({
+  project: SIGNALWIRE_PROJECT_ID,
+  token: SIGNALWIRE_PROJECT_TOKEN,
+});
 
 const saveResponse = async ({ query, response }) => {
   try {
@@ -228,4 +235,88 @@ export const Message = (req, res) => {
   console.log(
     "message Request Params from server  --->" + JSON.stringify(req.query)
   );
+};
+
+export const CallUsers = async (req, res) => {
+  try {
+    // const { mobile } = req.query;
+
+    // if(!mobile){
+    //   throw new Error('please pass mobile number!')
+    // }
+
+    await relayClient.connect();
+    const result = await Outbound.getPin({
+      client: relayClient,
+      from: "+12029907742",
+      // to: mobile,
+      to: "+918652507623",
+    });
+    res.status(200).send({
+      result: JSON.stringify(result),
+    });
+  } catch (error) {
+    __logger.error(error);
+    res.status(500).send({
+      error: error,
+    });
+  }
+};
+
+export const CallUser = async (req, res) => {
+  try {
+    // const result = await Outbound.getPinSet({
+    //   project: SIGNALWIRE_PROJECT_ID,
+    //   token: SIGNALWIRE_PROJECT_TOKEN,
+    //   from: "+12029907742",
+    //   to: "+918652507623",
+    // });
+    const consumer = new RelayConsumer({
+      project: SIGNALWIRE_PROJECT_ID,
+      token: SIGNALWIRE_PROJECT_TOKEN,
+      contexts: ["home", "office"],
+      teardown: (consumer) => {
+        console.log("teardown now and close.");
+      },
+      ready: async ({ client }) => {
+        try {
+          const params = {
+            type: "phone",
+            from: "+12029907742",
+            to: "+918652507623",
+          };
+          const { successful: dialed, call } = await client.calling.dial(
+            params
+          );
+          if (!dialed) {
+            console.error("Outbound call failed or not answered.");
+            return;
+          }
+
+          const { successful, event } = await call.sendDigits("1w2w3w4w5w6");
+          if (successful) {
+            console.log("Digits sent successfully!", event);
+          } else {
+            console.error("Error sending digits!", event);
+          }
+
+          await call.hangup();
+        } catch (error) {
+          console.error("Error sending error!", error);
+        }
+      },
+    });
+
+    consumer.run();
+    res.status(200).send({
+      result: JSON.stringify({
+        message: "Working...",
+      }),
+    });
+  } catch (error) {
+    __logger.error(error);
+    res.status(500).send({
+      error: error,
+    });
+  }
 };
